@@ -1,0 +1,27 @@
+{
+  "name": "teahouse",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@noble/secp256k1": "^1.6.3",
+    "jtd": "^0.1.1",
+    "ulid": "^2.3.0"
+  },
+  "scripts": {
+    "build": "esbuild --bundle --outdir=dist src/index.ts",
+    "prebuild": "yarn typegen",
+    "typegen": "jtdc --rootDir ./src/schema --includes '*.json' --outDir ./src/schema/gen",
+    "pretest": "yarn typegen",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@jtdc/cli": "^1.0.0",
+    "@types/jest": "^28.1.7",
+    "esbuild": "^0.15.3",
+    "jest": "^28.1.3",
+    "jest-websocket-mock": "^2.4.0",
+    "ts-jest": "^28.0.8",
+    "typescript": "^4.7.4"
+  }
+}

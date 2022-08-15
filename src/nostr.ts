@@ -1,0 +1,77 @@
+import { schnorr, utils } from '@noble/secp256k1';
+import { type Event } from './schema';
+
+const { bytesToHex, hexToBytes, sha256, randomPrivateKey } = utils;
+const { getPublicKey, sign, verify } = schnorr;
+
+export {
+    bytesToHex,
+    hexToBytes,
+    getPublicKey,
+    randomPrivateKey,
+    sha256,
+    sign,
+    verify,
+};
+
+export enum EventKind {
+    Metadata = 0,
+    Text = 1,
+    RelayRec = 2,
+    Contacts = 3,
+    DM = 4,
+    Deleted = 5,
+}
+
+export type Keypair = {
+    pk: string,
+    sk: string,
+};
+
+export type PresignEvent = Omit<Event, 'id'|'sig'>;
+
+export const signEvent = async (event: PresignEvent, keys: Keypair) => {
+    const signingForm = [
+        0,
+        event.pubkey,
+        event.created_at,
+        event.kind,
+        event.tags,
+        event.content,
+    ];
+
+    const signingPayload = JSON.stringify(signingForm);
+    const id = bytesToHex(await sha256(new TextEncoder().encode(signingPayload)));
+    const sig = bytesToHex(await sign(id, keys.sk));
+
+    const signed = {
+        ...event,
+        id,
+        sig,
+    };
+
+    return signed;
+}
+
+export const verifyEvent = (event: Event, pk: string) => {
+    const pkBytes = hexToBytes(pk);
+    return verify(event.sig, event.id, pkBytes);
+}
+
+export const defaultFilters = (pubkey: string) => [
+    { kinds: [1], "#p": [pubkey], },
+    { kinds: [1], authors: [pubkey], },
+];
+
+export enum Annotation {
+    Seen,
+    Read,
+    Muted,
+    Pinned,
+}
+
+export type Message = {
+    received: Date,
+    event: Event,
+    annotations: Set<Annotation>,
+};

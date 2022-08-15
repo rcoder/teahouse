@@ -1,0 +1,44 @@
+{
+    "event": {
+        "properties": {
+            "id"        : { "type": "string" },
+            "pubkey"    : { "type": "string" },
+            "created_at": { "type": "float64" },
+            "kind"      : { "type": "uint16" },
+            "sig"       : { "type": "string" }
+        },
+        "optionalProperties": {
+            "content" : { "type": "string" },
+            "tags": { "elements": { "elements": { "type": "string" } } }
+        }
+    },
+    "filter": {
+        "optionalProperties": {
+            "ids"    : { "elements": { "type": "string" } },
+            "authors": { "elements": { "type": "string" } },
+            "kinds"  : { "elements": { "type": "string" } },
+            "#e"     : { "elements": { "type": "string" } },
+            "#p"     : { "elements": { "type": "string" } },
+            "since"  : { "type": "float64" },
+            "until"  : { "type": "float64" },
+            "limit"  : { "type": "uint32" }
+        }
+    },
+    "metadata": {
+        "optionalProperties": {
+            "name"   : { "type": "string" },
+            "about"  : { "type": "string" },
+            "picture": { "type": "string" },
+            "nip05"  : { "type": "string" }
+        }
+    },
+    "contacts": {
+        "properties": {
+            "kind": { "type": "uint16" },
+            "tags": { "elements": { "elements": { "type": "string" } } }
+        },
+        "optionalProperties": {
+            "content": { "type": "string" }
+        }
+    }
+}
