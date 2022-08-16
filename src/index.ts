@@ -2,9 +2,9 @@ import {
     type Keypair,
     type Message,
     Annotation,
-    EventKind,
     bytesToHex,
     defaultFilters,
+    EventKind,
     getPublicKey,
     hexToBytes,
     randomPrivateKey,
@@ -12,9 +12,7 @@ import {
     verifyEvent,
 } from './nostr';
 
-import {
-    mkPool
-} from './relay';
+import { mkPool } from './relay';
 
 import {
     type Event,
@@ -31,9 +29,9 @@ export {
     type Keypair,
     type Message,
     Annotation,
-    EventKind,
     bytesToHex,
     defaultFilters,
+    EventKind,
     getPublicKey,
     hexToBytes,
     mkPool,

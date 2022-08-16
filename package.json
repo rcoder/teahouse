@@ -6,7 +6,9 @@
   "dependencies": {
     "@noble/secp256k1": "^1.6.3",
     "jtd": "^0.1.1",
-    "ulid": "^2.3.0"
+    "prelude-ts": "^1.0.4",
+    "ulid": "^2.3.0",
+    "weak-lru-cache": "^1.2.2"
   },
   "scripts": {
     "build": "esbuild --bundle --outdir=dist src/index.ts",

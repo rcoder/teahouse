@@ -1,5 +1,5 @@
 import { schnorr, utils } from '@noble/secp256k1';
-import { type Event } from './schema';
+import type { Event, Filter } from './schema';
 
 const { bytesToHex, hexToBytes, sha256, randomPrivateKey } = utils;
 const { getPublicKey, sign, verify } = schnorr;
@@ -53,12 +53,12 @@ export const signEvent = async (event: PresignEvent, keys: Keypair) => {
     return signed;
 }
 
-export const verifyEvent = (event: Event, pk: string) => {
-    const pkBytes = hexToBytes(pk);
+export const verifyEvent = (event: Event) => {
+    const pkBytes = hexToBytes(event.pubkey);
     return verify(event.sig, event.id, pkBytes);
 }
 
-export const defaultFilters = (pubkey: string) => [
+export const defaultFilters: (pubkey: string) => Filter[] = (pubkey) => [
     { kinds: [1], "#p": [pubkey], },
     { kinds: [1], authors: [pubkey], },
 ];

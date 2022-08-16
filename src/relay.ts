@@ -4,6 +4,8 @@ import schema from './schema/nostr.json';
 import { type Schema, validate } from 'jtd';
 import { ulid } from 'ulid';
 
+import { WeakLRUCache } from 'weak-lru-cache';
+
 export type RelayPool = {
     addFilter: (...filters: Filter[]) => string,
     conns: WebSocket[],
@@ -17,6 +19,8 @@ type SubscriptionCb = (event: Event) => Promise<void>;
 export const mkPool: () => RelayPool = () => {
     const conns: WebSocket[] = [];
     const subscribers: Set<SubscriptionCb> = new Set();
+    const recentEvents: WeakLRUCache<string, Event> = new WeakLRUCache();
+
     let lastEvent: Event;
 
     const connect = async (url: string) => {
@@ -36,9 +40,13 @@ export const mkPool: () => RelayPool = () => {
                     const errors = validate(schema.event as Schema, event);
                     if (errors.length == 0) {
                         lastEvent = event;
-                        for (const sub of subscribers) {
-                            sub(event);
+                        if (recentEvents.getValue(event.id) === undefined) {
+                            for (const sub of subscribers) {
+                                sub(event);
+                            }
                         }
+
+                        recentEvents.setValue(event.id, event);
                     }
                 }
             }
@@ -75,3 +83,4 @@ export const mkPool: () => RelayPool = () => {
         subscribe,
     }
 }
+

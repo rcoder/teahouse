@@ -16,7 +16,7 @@
         "optionalProperties": {
             "ids"    : { "elements": { "type": "string" } },
             "authors": { "elements": { "type": "string" } },
-            "kinds"  : { "elements": { "type": "string" } },
+            "kinds"  : { "elements": { "type": "uint16" } },
             "#e"     : { "elements": { "type": "string" } },
             "#p"     : { "elements": { "type": "string" } },
             "since"  : { "type": "float64" },
