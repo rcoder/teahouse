@@ -29,6 +29,7 @@ export type Keypair = {
 };
 
 export type PresignEvent = Omit<Event, 'id'|'sig'>;
+export type KindedEvent<K extends EventKind> = Event & { kind: K };
 
 export const signEvent = async (event: PresignEvent, keys: Keypair) => {
     const signingForm = [

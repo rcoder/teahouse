@@ -32,13 +32,20 @@
             "nip05"  : { "type": "string" }
         }
     },
-    "contacts": {
+    "nip05": {
         "properties": {
-            "kind": { "type": "uint16" },
-            "tags": { "elements": { "elements": { "type": "string" } } }
-        },
+            "names": { "values": { "type": "string" } }
+        }
+    },
+    "nip11": {
         "optionalProperties": {
-            "content": { "type": "string" }
+            "name"       : { "type": "string" },
+            "description": { "type": "string" },
+            "pubkey"     : { "type": "string" },
+            "contact"    : { "type": "string" },
+            "software"   : { "type": "string" },
+            "version"    : { "type": "string" },
+            "supported_nips": { "elements": { "type": "uint16" } }
         }
     }
 }

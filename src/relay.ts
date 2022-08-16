@@ -1,20 +1,54 @@
-import type { Event, Filter } from './schema';
+import type { Event, Filter, Nip11 } from './schema';
 import schema from './schema/nostr.json';
 
 import { type Schema, validate } from 'jtd';
 import { ulid } from 'ulid';
+import fetch from 'cross-fetch';
 
 import { WeakLRUCache } from 'weak-lru-cache';
 
 export type RelayPool = {
     addFilter: (...filters: Filter[]) => string,
+    close: () => void,
     conns: WebSocket[],
-    connect: (url: string) => void,
+    connect: (url: string) => Promise<Nip11|undefined>,
     publish: (event: Event) => void,
     subscribe: (cb: SubscriptionCb) => () => void,
 };
 
 type SubscriptionCb = (event: Event) => Promise<void>;
+
+export const nip05Url = (alias: string) => {
+    let [_, local, domain] = alias.split('@');
+
+    if (local && domain) {
+        local = encodeURIComponent(local);
+        domain = encodeURIComponent(domain);
+        return new URL(`https://${domain}/.well-known/nostr.json?name=${local}`);
+    } else {
+        return undefined;
+    }
+}
+
+export const relayInfoUrl = (wsUrl: string) => new URL(`https://${new URL(wsUrl).host}/`);
+
+// fetch NIP-11 info for one relay, if available
+export const fetchRelayInfo = async (url: string) => {
+    let response = Promise.resolve(undefined);
+
+    try {
+        const fetchResult = await fetch(relayInfoUrl(url));
+        if (fetchResult.ok) {
+            response = await fetchResult.json();
+        }
+    } catch (e) {
+        console.error(`fetchRelayInfo`, { e });
+        // TODO: this function should really return an `Either`
+        // or re-throw, probably?
+    }
+
+    return response;
+}
 
 export const mkPool: () => RelayPool = () => {
     const conns: WebSocket[] = [];
@@ -23,31 +57,52 @@ export const mkPool: () => RelayPool = () => {
 
     let lastEvent: Event;
 
+    const close = () => {
+        for (const sock of conns) {
+            sock.close();
+        }
+    }
+
     const connect = async (url: string) => {
         const socket = new WebSocket(url);
     
-        return new Promise((accept, reject) => {
-            socket.onopen = () => {
+        return new Promise<Nip11|undefined>((accept, reject) => {
+            socket.onopen = async () => {
                 conns.push(socket);
-                accept(true);
+                const relayInfo = await fetchRelayInfo(url);
+                accept(relayInfo);
             };
 
             socket.onerror = (err) => reject(err);
 
             socket.onmessage = (ev: MessageEvent) => {
-                const [etype, _subId, event] = JSON.parse(ev.data);
-                if (etype == "EVENT") {
-                    const errors = validate(schema.event as Schema, event);
-                    if (errors.length == 0) {
-                        lastEvent = event;
-                        if (recentEvents.getValue(event.id) === undefined) {
-                            for (const sub of subscribers) {
-                                sub(event);
-                            }
-                        }
+                const [etype, ...params] = JSON.parse(ev.data);
 
-                        recentEvents.setValue(event.id, event);
-                    }
+                switch (etype) {
+                    case "EVENT":
+                        const subId = params[0];
+                        const event = params[1];
+
+                        const errors = validate(schema.event as Schema, event);
+
+                        if (errors.length == 0) {
+                            lastEvent = event;
+
+                            if (recentEvents.getValue(event.id) === undefined) {
+                                for (const sub of subscribers) {
+                                    sub(event);
+                                }
+                            }
+
+                            recentEvents.setValue(event.id, event);
+                        }
+                        break;
+                    case "NOTIFY":
+                        // TODO
+                        break;
+                    case "EOSE":
+                        // TODO
+                        break;
                 }
             }
         });
@@ -77,6 +132,7 @@ export const mkPool: () => RelayPool = () => {
 
     return {
         addFilter,
+        close,
         conns,
         connect,
         publish,
