@@ -1,4 +1,4 @@
-import {
+export {
     type Keypair,
     type Message,
     Annotation,
@@ -12,9 +12,9 @@ import {
     verifyEvent,
 } from './nostr';
 
-import { fetchRelayInfo, mkPool, relayInfoUrl } from './relay';
+export { fetchRelayInfo, mkPool, relayInfoUrl } from './relay';
 
-import {
+export {
     type Event,
     type Filter,
     type Metadata,
@@ -23,24 +23,4 @@ import {
 } from './schema/gen/nostr';
 
 import schema from './schema/nostr.json';
-
-export {
-    type Event,
-    type Filter,
-    type Metadata,
-    type Keypair,
-    type Message,
-    Annotation,
-    bytesToHex,
-    defaultFilters,
-    EventKind,
-    fetchRelayInfo,
-    getPublicKey,
-    hexToBytes,
-    mkPool,
-    randomPrivateKey,
-    relayInfoUrl,
-    schema,
-    signEvent,
-    verifyEvent,
-};
+export { schema };

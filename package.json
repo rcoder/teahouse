@@ -2,6 +2,12 @@
   "name": "teahouse",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "files": "dist/*",
+  "repository": {
+    "type": "git",
+    "url": "https://kocchi.dev/lennon/teahouse.git"
+  },
+  "type": "module",
   "license": "MIT",
   "dependencies": {
     "@noble/secp256k1": "^1.6.3",
@@ -12,8 +18,8 @@
     "weak-lru-cache": "^1.2.2"
   },
   "scripts": {
-    "build": "esbuild --bundle --outdir=dist src/index.ts",
-    "prebuild": "yarn typegen",
+    "build": "tsup src/index.ts --dts --format esm,cjs",
+    "prebuild": "rimraf './dist/*' && rimraf './src/schema/gen/*' && yarn typegen",
     "typegen": "jtdc --rootDir ./src/schema --includes '*.json' --outDir ./src/schema/gen",
     "pretest": "yarn typegen",
     "test": "jest"
@@ -28,7 +34,10 @@
     "fetch-mock-jest": "^1.5.1",
     "jest": "^28.1.3",
     "jest-websocket-mock": "^2.4.0",
+    "npm-dts": "^1.3.12",
+    "rimraf": "^3.0.2",
     "ts-jest": "^28.0.8",
+    "tsup": "^6.2.2",
     "typescript": "^4.7.4"
   }
 }
