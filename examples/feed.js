@@ -1,0 +1,29 @@
+import { mkPool, defaultFilters } from '../dist/index.js';
+
+import fs from 'node:fs/promises';
+
+const logfile = await fs.open('feed.ndjson', 'w+');
+
+const pool = mkPool();
+const relayInfo = await pool.connect('wss://relay.nostr.info');
+
+console.log({ relayInfo });
+
+pool.addFilter({});
+
+let events = 0;
+
+const unsub = pool.subscribe((event) => {
+    if (event === undefined) return;
+
+    logfile.write(`${JSON.stringify(event)}\n`);
+    events += 1;
+});
+
+setTimeout(() => {
+    unsub();
+    logfile.close();
+    console.log(`${events} written`);
+    process.exit(0);
+}, 10000);
+

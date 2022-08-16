@@ -1,5 +1,6 @@
 import { afterEach, beforeAll, beforeEach, expect, jest, test } from '@jest/globals';
 
+import { WebSocket } from 'mock-socket';
 import WS from 'jest-websocket-mock';
 import type { FetchMockStatic } from 'fetch-mock';
 import 'fetch-mock-jest';
@@ -34,8 +35,10 @@ afterEach(() => {
     WS.clean();
 });
 
+const mockWsFactory = (url: string) => new WebSocket(url);
+
 const initPool = async () => {
-    const pool = mkPool();
+    const pool = mkPool(mockWsFactory);
     await pool.connect(mockWsUrl);
     await server.connected;
 
@@ -88,7 +91,7 @@ test('relay-info', async () => {
     const urlStr = relayInfoUrl(mockWsUrl).toString();
     fetchMock.get(urlStr, relayInfo);
 
-    const pool = mkPool();
+    const pool = mkPool(mockWsFactory);
 
     const fetchedInfo = await pool.connect(mockWsUrl);
     await server.connected;

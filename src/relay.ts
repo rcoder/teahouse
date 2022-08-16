@@ -6,6 +6,7 @@ import { ulid } from 'ulid';
 import fetch from 'cross-fetch';
 
 import { WeakLRUCache } from 'weak-lru-cache';
+import WebSocket from 'isomorphic-ws';
 
 export type RelayPool = {
     addFilter: (...filters: Filter[]) => string,
@@ -37,7 +38,12 @@ export const fetchRelayInfo = async (url: string) => {
     let response = Promise.resolve(undefined);
 
     try {
-        const fetchResult = await fetch(relayInfoUrl(url));
+        const fetchResult = await fetch(relayInfoUrl(url), {
+            headers: {
+                accept: 'application/nostr+json'
+            }
+        });
+
         if (fetchResult.ok) {
             response = await fetchResult.json();
         }
@@ -50,7 +56,9 @@ export const fetchRelayInfo = async (url: string) => {
     return response;
 }
 
-export const mkPool: () => RelayPool = () => {
+const mkSocket = (url: string) => new WebSocket(url);
+
+export const mkPool: (wsFactory?: typeof WebSocket) => RelayPool = (wsFactory = mkSocket) => {
     const conns: WebSocket[] = [];
     const subscribers: Set<SubscriptionCb> = new Set();
     const recentEvents: WeakLRUCache<string, Event> = new WeakLRUCache();
@@ -64,7 +72,7 @@ export const mkPool: () => RelayPool = () => {
     }
 
     const connect = async (url: string) => {
-        const socket = new WebSocket(url);
+        const socket = wsFactory(url);
     
         return new Promise<Nip11|undefined>((accept, reject) => {
             socket.onopen = async () => {
@@ -73,7 +81,7 @@ export const mkPool: () => RelayPool = () => {
                 accept(relayInfo);
             };
 
-            socket.onerror = (err) => reject(err);
+            socket.onerror = (err: unknown) => reject(err);
 
             socket.onmessage = (ev: MessageEvent) => {
                 const [etype, ...params] = JSON.parse(ev.data);
