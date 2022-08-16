@@ -6,8 +6,15 @@ nostr is cool because it lets you wire up message-driven applications that send 
 
 that means anyone with a reachable network address can potentially run a relay and provide a little more capacity and reliability to the whole network. you can also run private relays, and host networks for invited users only.
 
-there exists a reference implementation of a javascript nostr client: [nostr-tools](https://github.com/fiatjaf/nostr-tools) and it is a fine option. the design philosophy of this library is somewhat different -- types + schema-based validation from the get-go, focused on browser/web api environments -- and it adds functionality to make message handling a bit more efficient. (see "channel api" below.)
+## usage
 
-## channel api
+see [`examples/feed.js`](examples/feed.js) for a simple example. more api docs to come.
 
-> TODO
+## faq
+
+<dl>
+
+<dt>why use this instead of [nostr-tools](https://github.com/fiatjaf/nostr-tools)?
+</dt>
+<dd>nostr-tools is the original option for node/browser nostr clients and still has the best feature + extension coverage. teahouse is designed a little differently: it starts with a wire-format schema, and builds a native typescript interface up from there. i've also tried to build out test coverage as i go, even where that makes interfaces a little messier (see the `RelayPool#mkPool` constructor for an example)</dd>
+
