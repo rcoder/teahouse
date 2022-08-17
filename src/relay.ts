@@ -3,6 +3,7 @@ import schema from './schema/nostr.json';
 
 import { type Schema, validate } from 'jtd';
 import { ulid } from 'ulid';
+
 import fetch from 'cross-fetch';
 
 import { WeakLRUCache } from 'weak-lru-cache';
@@ -18,18 +19,6 @@ export type RelayPool = {
 };
 
 type SubscriptionCb = (event: Event) => Promise<void>;
-
-export const nip05Url = (alias: string) => {
-    let [_, local, domain] = alias.split('@');
-
-    if (local && domain) {
-        local = encodeURIComponent(local);
-        domain = encodeURIComponent(domain);
-        return new URL(`https://${domain}/.well-known/nostr.json?name=${local}`);
-    } else {
-        return undefined;
-    }
-}
 
 export const relayInfoUrl = (wsUrl: string) => new URL(`https://${new URL(wsUrl).host}/`);
 
@@ -58,7 +47,7 @@ export const fetchRelayInfo = async (url: string) => {
 
 const mkSocket = (url: string) => new WebSocket(url);
 
-export const mkPool: (wsFactory?: typeof WebSocket) => RelayPool = (wsFactory = mkSocket) => {
+export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = mkSocket) => {
     const conns: WebSocket[] = [];
     const subscribers: Set<SubscriptionCb> = new Set();
     const recentEvents: WeakLRUCache<string, Event> = new WeakLRUCache();

@@ -1,34 +1,37 @@
-import { afterEach, beforeAll, beforeEach, expect, jest, test } from '@jest/globals';
+import {
+    afterEach,
+    beforeAll,
+    beforeEach,
+    expect,
+    jest,
+    test
+} from '@jest/globals';
 
 import { WebSocket } from 'mock-socket';
 import WS from 'jest-websocket-mock';
-import type { FetchMockStatic } from 'fetch-mock';
-import 'fetch-mock-jest';
+
+jest.mock('cross-fetch', () => require('fetch-mock-jest').sandbox());
+const fetch = require('cross-fetch');
 
 import { type Schema, validate } from 'jtd';
 import schema from '../schema/nostr.json';
 
 import { mkEvent, stdKeypair, validateEvent } from './utils';
 
-import { type Event, defaultFilters, fetchRelayInfo, mkPool, relayInfoUrl, verifyEvent } from '..';
-
-jest.mock(
-    'cross-fetch',
-    () => require('fetch-mock-jest').sandbox()
-);
-
+import {
+    type Event,
+    defaultFilters,
+    mkPool,
+    relayInfoUrl,
+    verifyEvent
+} from '..';
 
 const mockWsUrl = 'ws://localhost:9876';
 let server: WS;
-let fetchMock: FetchMockStatic;
-
-beforeAll(async () => {
-    fetchMock = (require('cross-fetch') as unknown) as FetchMockStatic;
-});
 
 beforeEach(() => {
     server = new WS(mockWsUrl);
-    fetchMock.reset();
+    fetch.reset();
 });
 
 afterEach(() => {
@@ -46,7 +49,7 @@ const initPool = async () => {
 };
 
 test('pool-connect', async () => {
-    fetchMock.mock('*', { body: '', status: 404 });
+    fetch.once('*', { body: '', status: 404 });
     const pool = await initPool();
 
     const mailbox: Event[] = [];
@@ -89,7 +92,7 @@ test('relay-info', async () => {
     };
 
     const urlStr = relayInfoUrl(mockWsUrl).toString();
-    fetchMock.get(urlStr, relayInfo);
+    fetch.once('*', relayInfo);
 
     const pool = mkPool(mockWsFactory);
 

@@ -12,6 +12,8 @@ export {
     verifyEvent,
 } from './nostr';
 
+export { type Contact, resolver } from './contact';
+
 export { fetchRelayInfo, mkPool, relayInfoUrl } from './relay';
 
 export {
@@ -24,3 +26,6 @@ export {
 
 import schema from './schema/nostr.json';
 export { schema };
+
+import crossFetch from 'cross-fetch';
+export type Fetch = typeof crossFetch;

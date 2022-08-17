@@ -1,5 +1,6 @@
 import {
     type Event,
+    type Fetch,
     type Keypair,
     bytesToHex,
     EventKind,
@@ -12,6 +13,8 @@ import { Either } from 'prelude-ts';
 import schema from '../schema/nostr.json';
 import { type Schema, validate } from 'jtd';
 
+export const castFetch = (fn: any) => fn as Fetch;
+
 export const stdSk = '7f2c59ec89ec1bdb3b0ba760d747ae3ec3402afeaf227d27883f71eb9a56dde6';
 export const stdTs = new Date(2022, 1, 1);
 
@@ -20,9 +23,9 @@ export const stdKeypair: Keypair = {
     pk: bytesToHex(getPublicKey(stdSk))
 };
 
-export const mkEvent: (content?: string) => Promise<Event> =
-    async (content = '') => await signEvent({
-        kind: EventKind.Text,
+export const mkEvent: (content?: string, kind?: EventKind) => Promise<Event> =
+    async (content = '', kind = EventKind.Text) => await signEvent({
+        kind,
         content,
         pubkey: stdKeypair.pk,
         tags: [['#p', stdKeypair.pk]],
