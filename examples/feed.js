@@ -2,7 +2,11 @@ import { mkPool, defaultFilters } from '../dist/index.js';
 
 import fs from 'node:fs/promises';
 
-const logfile = await fs.open('feed.ndjson', 'w+');
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const logfile = await fs.open(`${scriptDir}/data/out/feed.ndjson`, 'w+');
 
 const pool = mkPool();
 const relayInfo = await pool.connect('wss://relay.nostr.info');
