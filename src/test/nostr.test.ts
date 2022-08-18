@@ -1,13 +1,17 @@
 import { test, expect } from '@jest/globals';
 import { stdKeypair, mkEvent } from './utils';
 
-import { verifyEvent } from '..';
+import { EventKind, verifyEvent } from '..';
 
 test('event-signing', async () => {
-    const event = await mkEvent();
+    const event = await mkEvent(
+        'test event',
+        EventKind.Text,
+        new Date(2022, 1, 1).getTime()
+    );
 
     expect(event.id).toBe(
-        '82f917766ae7338c7232dfa92bba45d7de1d1e192ec36a46c4b0fca046066669'
+        'b05fe61db1a646ef1e10995cde8b60e35146c9493b4adc0138c3605f1f538f04'
     );
 
     expect(await verifyEvent(event)).toBe(true);

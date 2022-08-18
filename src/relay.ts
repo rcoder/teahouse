@@ -14,12 +14,18 @@ type Subscription = {
     subId?: string,
 };
 
+type Query = {
+    subId: string,
+    query: Promise<Event>,
+};
+
 export type RelayPool = {
     close: () => void,
     conns: WebSocket[],
     connect: (url: string) => Promise<Nip11|undefined>,
     publish: (event: Event) => void,
-    subscribe: (cb: SubscriptionCb, ...filters: Filter[]) => Subscription,
+    query: (filter: Filter, timeout?: number) => Query,
+    subscribe: (cb: SubscriptionCb, subId?: string, ...filters: Filter[]) => Subscription,
 };
 
 type SubscriptionCb = (event: Event) => Promise<void>;
@@ -41,9 +47,9 @@ export const fetchRelayInfo = async (url: string) => {
             response = await fetchResult.json();
         }
     } catch (e) {
-        console.error(`fetchRelayInfo`, { e });
         // TODO: this function should really return an `Either`
-        // or re-throw, probably?
+        // or re-throw, probably
+        //console.debug(`fetchRelayInfo`, { e });
     }
 
     return response;
@@ -72,8 +78,8 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
     const handleEvent = (subId: string, event: Event) => {
         const errors = validate(schema.event as Schema, event);
         if (errors.length == 0) {
-            lastEvent = event;
             if (recentEvents.getValue(event.id) === undefined) {
+                lastEvent = event;
                 const recipients = [...subscribers.global];
                 const named = subscribers.named.get(subId);
                 if (named) recipients.push(named);
@@ -125,24 +131,21 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
         }
     }
 
-    const subscribe = (cb: SubscriptionCb, ...filters: Filter[]) => {
-        let subId: string | undefined = undefined;
-
+    const subscribe = (cb: SubscriptionCb, subId?: string, ...filters: Filter[]) => {
         if (filters.length > 0) {
-            subId = ulid();
+            subId = subId || ulid();
             sendAll(["REQ", subId, ...filters]);
             subscribers.named.set(subId, cb);
         } else {
             subscribers.global.add(cb);
+            cb(lastEvent);
         }
-
-        cb(lastEvent);
 
         const receipt = () => {
             subscribers.global.delete(cb);
             if (subId) {
                 subscribers.named.delete(subId);
-                sendAll(["CLOSE", subId]);
+                try { sendAll(["CLOSE", subId]); } catch {}
             }
         };
 
@@ -157,11 +160,36 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
         }
     }
 
+    const query: (filter: Filter, timeout?: number) => Query =
+        (filter, timeout) => {
+            const subId = ulid();
+
+            let receipt: Subscription|undefined = undefined;
+
+            const query = new Promise<Event>((accept, reject) => {
+                const timer = timeout && setTimeout(() => {
+                    if (receipt) receipt();
+                    reject(new Error("timeout reached"));
+                }, timeout);
+
+                receipt = subscribe(async (event: Event) => {
+                    setTimeout(() => {
+                        clearTimeout(timer);
+                        receipt && receipt();
+                        accept(event);
+                    }, 0);
+                }, subId, filter);
+            });
+
+            return { subId, query };
+        };
+
     return {
         close,
         conns,
         connect,
         publish,
+        query,
         subscribe,
     }
 }
