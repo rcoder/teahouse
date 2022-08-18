@@ -9,13 +9,17 @@ import fetch from 'cross-fetch';
 import { WeakLRUCache } from 'weak-lru-cache';
 import WebSocket from 'isomorphic-ws';
 
+type Subscription = {
+    (): void,
+    subId?: string,
+};
+
 export type RelayPool = {
-    addFilter: (...filters: Filter[]) => string,
     close: () => void,
     conns: WebSocket[],
     connect: (url: string) => Promise<Nip11|undefined>,
     publish: (event: Event) => void,
-    subscribe: (cb: SubscriptionCb) => () => void,
+    subscribe: (cb: SubscriptionCb, ...filters: Filter[]) => Subscription,
 };
 
 type SubscriptionCb = (event: Event) => Promise<void>;
@@ -49,7 +53,12 @@ const mkSocket = (url: string) => new WebSocket(url);
 
 export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = mkSocket) => {
     const conns: WebSocket[] = [];
-    const subscribers: Set<SubscriptionCb> = new Set();
+
+    const subscribers = {
+        named: new Map<string, SubscriptionCb>(),
+        global: new Set<SubscriptionCb>,
+    };
+
     const recentEvents: WeakLRUCache<string, Event> = new WeakLRUCache();
 
     let lastEvent: Event;
@@ -57,6 +66,24 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
     const close = () => {
         for (const sock of conns) {
             sock.close();
+        }
+    }
+
+    const handleEvent = (subId: string, event: Event) => {
+        const errors = validate(schema.event as Schema, event);
+        if (errors.length == 0) {
+            lastEvent = event;
+            if (recentEvents.getValue(event.id) === undefined) {
+                const recipients = [...subscribers.global];
+                const named = subscribers.named.get(subId);
+                if (named) recipients.push(named);
+
+                for (let recip of recipients) {
+                    recip(event);
+                }
+
+                recentEvents.setValue(event.id, event);
+            }
         }
     }
 
@@ -79,20 +106,7 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
                     case "EVENT":
                         const subId = params[0];
                         const event = params[1];
-
-                        const errors = validate(schema.event as Schema, event);
-
-                        if (errors.length == 0) {
-                            lastEvent = event;
-
-                            if (recentEvents.getValue(event.id) === undefined) {
-                                for (const sub of subscribers) {
-                                    sub(event);
-                                }
-                            }
-
-                            recentEvents.setValue(event.id, event);
-                        }
+                        handleEvent(subId, event);
                         break;
                     case "NOTIFY":
                         // TODO
@@ -105,20 +119,36 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
         });
     };
 
-    const subscribe = (cb: SubscriptionCb) => {
-        subscribers.add(cb);
-        cb(lastEvent);
-        return () => subscribers.delete(cb);
+    const sendAll = (msg: unknown) => {
+        for (const socket of conns) {
+            socket.send(JSON.stringify(msg));
+        }
     }
 
-    const addFilter = (...filters: Filter[]) => {
-        const subId = ulid();
+    const subscribe = (cb: SubscriptionCb, ...filters: Filter[]) => {
+        let subId: string | undefined = undefined;
 
-        for (const socket of conns) {
-            socket.send(JSON.stringify(["REQ", subId, ...filters]));
+        if (filters.length > 0) {
+            subId = ulid();
+            sendAll(["REQ", subId, ...filters]);
+            subscribers.named.set(subId, cb);
+        } else {
+            subscribers.global.add(cb);
         }
 
-        return subId;
+        cb(lastEvent);
+
+        const receipt = () => {
+            subscribers.global.delete(cb);
+            if (subId) {
+                subscribers.named.delete(subId);
+                sendAll(["CLOSE", subId]);
+            }
+        };
+
+        receipt.subId = subId;
+
+        return receipt;
     }
 
     const publish = (event: Event) => {
@@ -128,7 +158,6 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
     }
 
     return {
-        addFilter,
         close,
         conns,
         connect,

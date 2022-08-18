@@ -56,17 +56,16 @@ test('pool-connect', async () => {
 
     expect(pool.conns.length).toBe(1);
 
-    pool.subscribe(async (e: Event) => {
+    const filters = defaultFilters(stdKeypair.pk);
+
+    const receipt = pool.subscribe(async (e: Event) => {
         if (e) {
             mailbox.push(e);
         }
-    });
-
-    const filter = defaultFilters(stdKeypair.pk);
-    const subId = pool.addFilter(...filter);
+    }, ...filters);
 
     expect(await server.nextMessage)
-        .toBe(JSON.stringify(["REQ", subId, ...filter]));
+        .toBe(JSON.stringify(["REQ", receipt.subId, ...filters]));
 
     expect(mailbox.length).toBe(0);
 
@@ -76,7 +75,7 @@ test('pool-connect', async () => {
     expect(await server.nextMessage)
         .toBe(JSON.stringify(["EVENT", event]));
 
-    await server.send(JSON.stringify(["EVENT", subId, event]));
+    await server.send(JSON.stringify(["EVENT", receipt.subId, event]));
 
     expect(mailbox.length).toBe(1);
     expect(mailbox[0]).toEqual(event);
