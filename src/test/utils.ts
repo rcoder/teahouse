@@ -1,15 +1,15 @@
 import {
     type Event,
     type Keypair,
-    bytesToHex,
     EventKind,
-    getPublicKey,
     mkPool,
     signEvent
 } from '..';
 
 import schema from '../schema/nostr.json';
 import { type Schema, validate } from 'jtd';
+
+import { schnorr, utils } from '@noble/secp256k1';
 
 jest.mock('cross-fetch', () => require('fetch-mock-jest').sandbox());
 export const fetch = require('cross-fetch');
@@ -27,7 +27,7 @@ export const stdSk = '7f2c59ec89ec1bdb3b0ba760d747ae3ec3402afeaf227d27883f71eb9a
 
 export const stdKeypair: Keypair = {
     sk: stdSk,
-    pk: bytesToHex(getPublicKey(stdSk))
+    pk: utils.bytesToHex(schnorr.getPublicKey(stdSk))
 };
 
 export const mkEvent: (defaults?: Partial<Event>) => Promise<Event> =

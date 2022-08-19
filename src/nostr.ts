@@ -7,8 +7,6 @@ const { getPublicKey, sign, verify } = schnorr;
 export {
     bytesToHex,
     hexToBytes,
-    getPublicKey,
-    randomPrivateKey,
     sha256,
     sign,
     verify,
@@ -27,6 +25,15 @@ export type Keypair = {
     pk: string,
     sk: string,
 };
+
+export const keypair = (sk: string) => {
+    return {
+        sk,
+        pk: getPublicKey(sk),
+    };
+};
+
+export const randomKeypair = () => keypair(bytesToHex(randomPrivateKey()));
 
 export type PresignEvent = Omit<Event, 'id'|'sig'>;
 export type KindedEvent<K extends EventKind> = Event & { kind: K };

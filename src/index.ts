@@ -1,11 +1,9 @@
 export {
     type Keypair,
-    bytesToHex,
     defaultFilters,
     EventKind,
-    getPublicKey,
-    hexToBytes,
-    randomPrivateKey,
+    keypair,
+    randomKeypair,
     signEvent,
     verifyEvent,
 } from './nostr';
