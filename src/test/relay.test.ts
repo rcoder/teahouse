@@ -21,7 +21,6 @@ import {
     mockWsUrl,
     sleep,
     stdKeypair,
-    validateEvent
 } from './utils';
 
 import {
@@ -54,7 +53,7 @@ test('pool-connect', async () => {
 
     const mailbox: Event[] = [];
 
-    expect(pool.conns.length).toBe(1);
+    expect(pool.activeRelays()).toBe(1);
 
     const filters = defaultFilters(stdKeypair.pk);
 
@@ -120,13 +119,15 @@ test('multiple-filters', async () => {
 
     expect(received2).toEqual(event2);
     expect(received1).not.toEqual(event2);
+
+    pool.close();
 });
 
 test('one-time', async () => {
     const pool = await initPool();
     await server.connected;
 
-    const event = await mkEvent('oneshot queries');
+    const event = await mkEvent({ content: 'oneshot queries' });
     const filter = { ids: [event.id] };
 
     await pool.publish(event);
@@ -148,6 +149,8 @@ test('one-time', async () => {
 
     await sleep(250);
     expect(q2.subId).not.toBe(q.subId);
+
+    pool.close();
 });
 
 test('relay-info', async () => {
@@ -157,12 +160,11 @@ test('relay-info', async () => {
         supported_nips: [5, 11],
     };
 
-    const urlStr = relayInfoUrl(mockWsUrl).toString();
     fetch.once('*', relayInfo);
 
     const pool = mkPool(mockWsFactory);
 
-    const fetchedInfo = await pool.connect(mockWsUrl);
+    const fetchedInfo = await pool.connect(mockWsUrl, true);
     expect(fetchedInfo).toEqual(relayInfo);
 
     pool.close();

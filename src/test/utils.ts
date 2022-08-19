@@ -1,6 +1,5 @@
 import {
     type Event,
-    type Fetch,
     type Keypair,
     bytesToHex,
     EventKind,
@@ -8,8 +7,6 @@ import {
     mkPool,
     signEvent
 } from '..';
-
-import { Either } from 'prelude-ts';
 
 import schema from '../schema/nostr.json';
 import { type Schema, validate } from 'jtd';
@@ -22,7 +19,7 @@ export const mockWsFactory = (url: string|URL) => new WebSocket(url);
 
 export const initPool = async () => {
     const pool = mkPool(mockWsFactory);
-    await pool.connect(mockWsUrl);
+    await pool.connect(mockWsUrl, true);
     return pool;
 };
 
@@ -33,19 +30,15 @@ export const stdKeypair: Keypair = {
     pk: bytesToHex(getPublicKey(stdSk))
 };
 
-export const mkEvent: (content?: string, kind?: EventKind, ts?: number) => Promise<Event> =
-    async (content = '', kind = EventKind.Text, ts = Date.now()) => await signEvent({
-        kind,
-        content,
-        pubkey: stdKeypair.pk,
-        tags: [['#p', stdKeypair.pk]],
-        created_at: ts,
-    }, stdKeypair);
-
-export const validateEvent = (event: unknown) => {
-    const errors = validate(schema.event as Schema, event);
-    return (errors.length === 0) ? Either.left(event) : Either.right(errors);
-}
+export const mkEvent: (defaults?: Partial<Event>) => Promise<Event> =
+    async (defaults = {}) =>
+        await signEvent({
+            content: defaults.content || '',
+            pubkey: defaults.pubkey || stdKeypair.pk,
+            tags: defaults.tags || [['#p', stdKeypair.pk]],
+            created_at: defaults.created_at || Date.now(),
+            kind: defaults.kind || EventKind.Text,
+        }, stdKeypair);
 
 export const sleep = (ms: number) => new Promise((accept, _reject) => {
     setTimeout(accept, ms);

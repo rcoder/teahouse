@@ -1,4 +1,5 @@
-import { type Metadata, type Event, type Keypair } from '.';
+import { type Keypair } from './nostr';
+import { type Event, type Metadata } from './schema/gen/nostr';
 
 import schema from './schema/nostr.json';
 import { type Schema, validate } from 'jtd';

@@ -21,10 +21,11 @@ export type Query = {
 
 export type RelayPool = {
     close: () => void,
-    conns: WebSocket[],
-    connect: (url: string) => Promise<Nip11|undefined>,
+    connect: (url: string, fetchInfo?: boolean) => Promise<Nip11|undefined>,
+    activeRelays: () => number,
     publish: (event: Event) => void,
     query: (filter: Filter, timeout?: number) => Query,
+    relayInfo: (url: string) => Promise<Nip11|undefined>,
     subscribe: (cb: SubscriptionCb, subId?: string, ...filters: Filter[]) => Subscription,
 };
 
@@ -58,7 +59,8 @@ export const fetchRelayInfo = async (url: string) => {
 const mkSocket = (url: string) => new WebSocket(url);
 
 export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = mkSocket) => {
-    const conns: WebSocket[] = [];
+    const conns: Map<string, WebSocket> = new Map();
+    const rInfo: Map<string, Nip11> = new Map();
 
     const subscribers = {
         named: new Map<string, SubscriptionCb>(),
@@ -69,8 +71,10 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
 
     let lastEvent: Event;
 
+    const activeRelays = () => [...conns.values()].length;
+
     const close = () => {
-        for (const sock of conns) {
+        for (const sock of conns.values()) {
             sock.close();
         }
     }
@@ -93,19 +97,23 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
         }
     }
 
-    const connect = async (url: string) => {
-        const socket = wsFactory(url);
+    const connect = async (url: string, fetchInfo = false) => {
+        const sock = wsFactory(url);
     
         return new Promise<Nip11|undefined>((accept, reject) => {
-            socket.onopen = async () => {
-                conns.push(socket);
-                const relayInfo = await fetchRelayInfo(url);
-                accept(relayInfo);
+            sock.onopen = async () => {
+                if (fetchInfo) {
+                    let info: Nip11|undefined = undefined;
+                    info = await fetchRelayInfo(url);
+                    if (info) rInfo.set(url, info);
+                    conns.set(url, sock);
+                    accept(info);
+                }
             };
 
-            socket.onerror = (err: unknown) => reject(err);
+            sock.onerror = (err: unknown) => reject(err);
 
-            socket.onmessage = (ev: MessageEvent) => {
+            sock.onmessage = (ev: MessageEvent) => {
                 const [etype, ...params] = JSON.parse(ev.data);
 
                 switch (etype) {
@@ -125,9 +133,20 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
         });
     };
 
+    const relayInfo = async (url: string) => {
+        let info = rInfo.get(url);
+
+        if (!info) {
+            info = await fetchRelayInfo(url);
+            if (info) rInfo.set(url, info);
+        }
+
+        return info;
+    }
+
     const sendAll = (msg: unknown) => {
-        for (const socket of conns) {
-            socket.send(JSON.stringify(msg));
+        for (const sock of conns.values()) {
+            sock.send(JSON.stringify(msg));
         }
     }
 
@@ -155,8 +174,8 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
     }
 
     const publish = (event: Event) => {
-        for (const conn of conns) {
-            conn.send(JSON.stringify(["EVENT", event]));
+        for (const sock of conns.values()) {
+            sock.send(JSON.stringify(["EVENT", event]));
         }
     }
 
@@ -185,10 +204,12 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = 
         };
 
     return {
+        activeRelays,
         close,
         conns,
         connect,
         publish,
+        relayInfo,
         query,
         subscribe,
     }

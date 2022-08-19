@@ -64,15 +64,3 @@ export const defaultFilters: (pubkey: string) => Filter[] = (pubkey) => [
     { kinds: [1], authors: [pubkey], },
 ];
 
-export enum Annotation {
-    Seen,
-    Read,
-    Muted,
-    Pinned,
-}
-
-export type Message = {
-    received: Date,
-    event: Event,
-    annotations: Set<Annotation>,
-};

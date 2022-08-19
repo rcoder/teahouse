@@ -5,7 +5,7 @@ import { matches, matchesAll } from '../filter';
 import { mkEvent } from './utils';
 
 test('matching', async () => {
-    const event = await mkEvent('filter test');
+    const event = await mkEvent({ content: 'filter test' });
 
     expect(matches(event, {})).toBe(true);
 

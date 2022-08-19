@@ -1,7 +1,5 @@
 export {
     type Keypair,
-    type Message,
-    Annotation,
     bytesToHex,
     defaultFilters,
     EventKind,
@@ -11,10 +9,6 @@ export {
     signEvent,
     verifyEvent,
 } from './nostr';
-
-export { type Contact, resolver } from './contact';
-
-export { fetchRelayInfo, mkPool, relayInfoUrl } from './relay';
 
 export {
     type Event,
@@ -27,5 +21,13 @@ export {
 import schema from './schema/nostr.json';
 export { schema };
 
-import crossFetch from 'cross-fetch';
-export type Fetch = typeof crossFetch;
+export {
+    type Message,
+    type Mailbox,
+    Annotation,
+    mkMailbox,
+} from './mailbox';
+
+export { type Contact, resolver } from './contact';
+
+export { fetchRelayInfo, mkPool, relayInfoUrl } from './relay';

@@ -24,10 +24,10 @@ beforeEach(() => {
 });
 
 const n05MetaFor = async (alias: string) =>
-    await mkEvent(
-        JSON.stringify({ nip05: alias }),
-        EventKind.Metadata
-    );
+    await mkEvent({
+        content: JSON.stringify({ nip05: alias }),
+        kind: EventKind.Metadata
+    });
 
 test('parsing', async () => {
     const good = 'me@example.com';

@@ -23,7 +23,8 @@
     "prebuild": "rimraf './dist/*' && rimraf './src/schema/gen/*' && yarn typegen",
     "typegen": "jtdc --rootDir ./src/schema --includes '*.json' --outDir ./src/schema/gen",
     "pretest": "yarn typegen",
-    "test": "jest"
+    "test": "jest --watch",
+    "coverage": "jest --coverage --collectCoverageFrom='./src/**/*.{js,ts}'"
   },
   "devDependencies": {
     "@jtdc/cli": "^1.0.0",
