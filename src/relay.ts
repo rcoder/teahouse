@@ -9,12 +9,12 @@ import fetch from 'cross-fetch';
 import { WeakLRUCache } from 'weak-lru-cache';
 import WebSocket from 'isomorphic-ws';
 
-type Subscription = {
+export type Subscription = {
     (): void,
     subId?: string,
 };
 
-type Query = {
+export type Query = {
     subId: string,
     query: Promise<Event>,
 };

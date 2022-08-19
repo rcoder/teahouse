@@ -10,13 +10,19 @@ import {
 import { WebSocket } from 'mock-socket';
 import WS from 'jest-websocket-mock';
 
-jest.mock('cross-fetch', () => require('fetch-mock-jest').sandbox());
-const fetch = require('cross-fetch');
-
 import { type Schema, validate } from 'jtd';
 import schema from '../schema/nostr.json';
 
-import { mkEvent, sleep, stdKeypair, validateEvent } from './utils';
+import {
+    fetch,
+    initPool,
+    mkEvent,
+    mockWsFactory,
+    mockWsUrl,
+    sleep,
+    stdKeypair,
+    validateEvent
+} from './utils';
 
 import {
     type Event,
@@ -26,7 +32,6 @@ import {
     verifyEvent
 } from '..';
 
-const mockWsUrl = 'ws://localhost:9876';
 let server: WS;
 
 beforeAll(() => {
@@ -43,18 +48,9 @@ afterEach(() => {
     WS.clean();
 });
 
-const mockWsFactory = (url: string) => new WebSocket(url);
-
-const initPool = async () => {
-    const pool = mkPool(mockWsFactory);
-    await pool.connect(mockWsUrl);
-    await server.connected;
-
-    return pool;
-};
-
 test('pool-connect', async () => {
     const pool = await initPool();
+    await server.connected;
 
     const mailbox: Event[] = [];
 
@@ -87,6 +83,7 @@ test('pool-connect', async () => {
 
 test('multiple-filters', async () => {
     const pool = await initPool();
+    await server.connected;
 
     const event1 = await mkEvent();
     const event2 = await mkEvent();
@@ -127,6 +124,8 @@ test('multiple-filters', async () => {
 
 test('one-time', async () => {
     const pool = await initPool();
+    await server.connected;
+
     const event = await mkEvent('oneshot queries');
     const filter = { ids: [event.id] };
 
@@ -164,7 +163,6 @@ test('relay-info', async () => {
     const pool = mkPool(mockWsFactory);
 
     const fetchedInfo = await pool.connect(mockWsUrl);
-    await server.connected;
     expect(fetchedInfo).toEqual(relayInfo);
 
     pool.close();

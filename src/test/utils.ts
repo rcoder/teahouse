@@ -5,6 +5,7 @@ import {
     bytesToHex,
     EventKind,
     getPublicKey,
+    mkPool,
     signEvent
 } from '..';
 
@@ -13,7 +14,17 @@ import { Either } from 'prelude-ts';
 import schema from '../schema/nostr.json';
 import { type Schema, validate } from 'jtd';
 
-export const castFetch = (fn: any) => fn as Fetch;
+jest.mock('cross-fetch', () => require('fetch-mock-jest').sandbox());
+export const fetch = require('cross-fetch');
+
+export const mockWsUrl = 'ws://localhost:9876';
+export const mockWsFactory = (url: string|URL) => new WebSocket(url);
+
+export const initPool = async () => {
+    const pool = mkPool(mockWsFactory);
+    await pool.connect(mockWsUrl);
+    return pool;
+};
 
 export const stdSk = '7f2c59ec89ec1bdb3b0ba760d747ae3ec3402afeaf227d27883f71eb9a56dde6';
 
