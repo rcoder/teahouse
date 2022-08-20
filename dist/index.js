@@ -14,11 +14,11 @@ var EventKind = /* @__PURE__ */ ((EventKind2) => {
 var keypair = (sk) => {
   return {
     sk,
-    pk: getPublicKey(sk)
+    pk: bytesToHex(getPublicKey(sk))
   };
 };
 var randomKeypair = () => keypair(bytesToHex(randomPrivateKey()));
-var signEvent = async (event, keys) => {
+var hashEvent = async (event) => {
   const signingForm = [
     0,
     event.pubkey,
@@ -29,17 +29,17 @@ var signEvent = async (event, keys) => {
   ];
   const signingPayload = JSON.stringify(signingForm);
   const id = bytesToHex(await sha256(new TextEncoder().encode(signingPayload)));
-  const sig = bytesToHex(await sign(id, keys.sk));
-  const signed = {
-    ...event,
-    id,
-    sig
-  };
-  return signed;
+  return { ...event, id };
 };
-var verifyEvent = (event) => {
+var signEvent = async (event, keys) => {
+  const sig = bytesToHex(await sign(event.id, keys.sk));
+  return { ...event, sig };
+};
+var verifyEvent = async (event) => {
   const pkBytes = hexToBytes(event.pubkey);
-  return verify(event.sig, event.id, pkBytes);
+  const reSigned = await hashEvent(event);
+  const checkId = reSigned.id;
+  return checkId === event.id && verify(event.sig, event.id, pkBytes);
 };
 var defaultFilters = (pubkey) => [
   { kinds: [1], "#p": [pubkey] },
@@ -360,6 +360,7 @@ export {
   EventKind,
   defaultFilters,
   fetchRelayInfo,
+  hashEvent,
   keypair,
   mkMailbox,
   mkPool,

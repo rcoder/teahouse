@@ -29,7 +29,7 @@ export type Keypair = {
 export const keypair = (sk: string) => {
     return {
         sk,
-        pk: getPublicKey(sk),
+        pk: bytesToHex(getPublicKey(sk)),
     };
 };
 

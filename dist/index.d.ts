@@ -52,21 +52,25 @@ declare type Keypair = {
 };
 declare const keypair: (sk: string) => {
     sk: string;
-    pk: Uint8Array;
+    pk: string;
 };
 declare const randomKeypair: () => {
     sk: string;
-    pk: Uint8Array;
+    pk: string;
 };
 declare type PresignEvent = Omit<Event, 'id' | 'sig'>;
-declare const signEvent: (event: PresignEvent, keys: Keypair) => Promise<{
+declare type SignedEvent = PresignEvent & {
     id: string;
+};
+declare const hashEvent: (event: PresignEvent) => Promise<SignedEvent>;
+declare const signEvent: (event: SignedEvent, keys: Keypair) => Promise<{
     sig: string;
     pubkey: string;
     created_at: number;
     kind: number;
     content?: string | undefined;
     tags?: string[][] | undefined;
+    id: string;
 }>;
 declare const verifyEvent: (event: Event) => Promise<boolean>;
 declare const defaultFilters: (pubkey: string) => Filter[];
@@ -253,4 +257,4 @@ declare type IdentResolver = {
 };
 declare const resolver: () => IdentResolver;
 
-export { Annotation, Contact, Event, EventKind, Filter, Keypair, Mailbox, Message, Metadata, Nip05, Nip11, defaultFilters, fetchRelayInfo, keypair, mkMailbox, mkPool, randomKeypair, relayInfoUrl, resolver, nostr as schema, signEvent, verifyEvent };
+export { Annotation, Contact, Event, EventKind, Filter, Keypair, Mailbox, Message, Metadata, Nip05, Nip11, defaultFilters, fetchRelayInfo, hashEvent, keypair, mkMailbox, mkPool, randomKeypair, relayInfoUrl, resolver, nostr as schema, signEvent, verifyEvent };
