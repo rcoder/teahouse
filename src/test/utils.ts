@@ -2,6 +2,7 @@ import {
     type Event,
     type Keypair,
     EventKind,
+    hashEvent,
     mkPool,
     signEvent
 } from '..';
@@ -32,13 +33,13 @@ export const stdKeypair: Keypair = {
 
 export const mkEvent: (defaults?: Partial<Event>) => Promise<Event> =
     async (defaults = {}) =>
-        await signEvent({
+        await signEvent(await hashEvent({
             content: defaults.content || '',
             pubkey: defaults.pubkey || stdKeypair.pk,
             tags: defaults.tags || [['#p', stdKeypair.pk]],
             created_at: defaults.created_at || Date.now(),
             kind: defaults.kind || EventKind.Text,
-        }, stdKeypair);
+        }), stdKeypair);
 
 export const sleep = (ms: number) => new Promise((accept, _reject) => {
     setTimeout(accept, ms);

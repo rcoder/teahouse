@@ -15,3 +15,14 @@ test('event-signing', async () => {
 
     expect(await verifyEvent(event)).toBe(true);
 });
+
+test('event-tampering', async () => {
+    const event = await mkEvent({
+        content: 'do not enter',
+    });
+
+    expect(await verifyEvent(event)).toBe(true);
+
+    event.content = 'welcome';
+    expect(await verifyEvent(event)).toBe(false);
+});

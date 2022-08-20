@@ -57,7 +57,7 @@ const ev = signEvent({
     pubkey: keys.pk
 }, myKeypair);
 
-assert(verifyEvent(ev));
+assert(await verifyEvent(ev));
 
 ```
 

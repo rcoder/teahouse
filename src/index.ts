@@ -2,6 +2,7 @@ export {
     type Keypair,
     defaultFilters,
     EventKind,
+    hashEvent,
     keypair,
     randomKeypair,
     signEvent,

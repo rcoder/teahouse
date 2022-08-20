@@ -58,7 +58,7 @@ export const fetchRelayInfo = async (url: string) => {
 
 const mkSocket = (url: string) => new WebSocket(url);
 
-export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = ( wsFactory = mkSocket) => {
+export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = (wsFactory = mkSocket) => {
     const conns: Map<string, WebSocket> = new Map();
     const rInfo: Map<string, Nip11> = new Map();
 

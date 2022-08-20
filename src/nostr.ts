@@ -35,35 +35,41 @@ export const keypair = (sk: string) => {
 
 export const randomKeypair = () => keypair(bytesToHex(randomPrivateKey()));
 
-export type PresignEvent = Omit<Event, 'id'|'sig'>;
-export type KindedEvent<K extends EventKind> = Event & { kind: K };
+type PresignEvent = Omit<Event, 'id'|'sig'>;
+type KindedEvent<K extends EventKind> = Event & { kind: K };
+type SignedEvent = PresignEvent & { id: string };
 
-export const signEvent = async (event: PresignEvent, keys: Keypair) => {
-    const signingForm = [
-        0,
-        event.pubkey,
-        event.created_at,
-        event.kind,
-        event.tags,
-        event.content,
-    ];
+export const hashEvent: (event: PresignEvent) => Promise<SignedEvent> =
+    async (event) => {
+        const signingForm = [
+            0,
+            event.pubkey,
+            event.created_at,
+            event.kind,
+            event.tags,
+            event.content,
+        ];
 
-    const signingPayload = JSON.stringify(signingForm);
-    const id = bytesToHex(await sha256(new TextEncoder().encode(signingPayload)));
-    const sig = bytesToHex(await sign(id, keys.sk));
+        const signingPayload = JSON.stringify(signingForm);
+        const id = bytesToHex(await sha256(new TextEncoder().encode(signingPayload)));
 
-    const signed = {
-        ...event,
-        id,
-        sig,
-    };
+        return { ...event, id, };
+    }
 
-    return signed;
+export const signEvent = async (event: SignedEvent, keys: Keypair) => {
+    const sig = bytesToHex(await sign(event.id, keys.sk));
+    return { ...event, sig }
 }
 
-export const verifyEvent = (event: Event) => {
+export const verifyEvent = async (event: Event) => {
     const pkBytes = hexToBytes(event.pubkey);
-    return verify(event.sig, event.id, pkBytes);
+    const reSigned = await hashEvent(event);
+    const checkId = reSigned.id;
+
+    return (
+        checkId === event.id &&
+        verify(event.sig, event.id, pkBytes)
+    );
 }
 
 export const defaultFilters: (pubkey: string) => Filter[] = (pubkey) => [
