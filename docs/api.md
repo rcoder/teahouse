@@ -22,73 +22,22 @@ You can import the following types:
 
 You can validate an arbitrary JSON object against the relevant schema as follows:
 
-```ts
-import schema from 'teahouse/schema/nostr.json';
-import { validate, type Schema } from 'jtd';
+## Examples
 
-const myEvent = { ... }
-const errors = validate(schema.event as Schema, myEvent);
-
-if (errors.length == 0) {
-    // message validated, so go ahead
-}
+### Creating + validating events
+```ts:packages/teahouse-examples/validation.ts
 ```
 
-### Creating events
+### Relays
 
-```ts
-import {
-    bytesToHex,
-    getPublicKey,
-    randomKeypair,
-    signEvent,
-    verifyEvent
-} from 'teahouse';
-
-const keys = randomKeypair();
-
-// signEvent generates `id` (the SHA-256 hash of the canonicalized
-// event) and `sig` (schnorr signature of `id`)
-const ev = signEvent({
-    kind: EventKind.Text,
-    content: 'just setting up my nostr',
-    created_at: Date.now(),
-    tags: [],
-    pubkey: keys.pk
-}, myKeypair);
-
-assert(await verifyEvent(ev));
-
+```ts:packages/teahouse-examples/relay-connection.ts
 ```
 
-## Relays
-
-```ts
-
-import { defaultFilters, mkPool } from 'teahouse';
-
-const pool = mkPool();
-const relayInfo = await pool.connect('wss://relay.example.com');
-
-const keys = randomKeypair();
-const filters = defaultFilters(keys.pk);
-
-const subId = pool.subscribe((ev: Event) => {
-    console.log({ ev });
-}, ...filters)
-
-const ev = signEvent({
-    ...
-});
-
-pool.publish(ev);
-```
-
-## Messages &amp; Mailboxes
+### Messages &amp; Mailboxes
 
 _TODO_
 
-## Contacts
+### Contacts
 
 _TODO_
 

@@ -56,9 +56,9 @@ export const fetchRelayInfo = async (url: string) => {
     return response;
 }
 
-const mkSocket = (url: string) => new WebSocket(url);
+const mkSocket = (url: string|URL) => new WebSocket(url);
 
-export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = (wsFactory = mkSocket) => {
+export const mkPool: (wsFactory?: typeof mkSocket) => RelayPool = (wsFactory = mkSocket) => {
     const conns: Map<string, WebSocket> = new Map();
     const rInfo: Map<string, Nip11> = new Map();
 
@@ -108,13 +108,17 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = (wsFactory = m
                     if (info) rInfo.set(url, info);
                     conns.set(url, sock);
                     accept(info);
+                } else {
+                    accept(undefined);
                 }
             };
 
             sock.onerror = (err: unknown) => reject(err);
 
-            sock.onmessage = (ev: MessageEvent) => {
-                const [etype, ...params] = JSON.parse(ev.data);
+            // there are too many types of `Event` in the web API
+            // standards
+            sock.onmessage = ((mev: MessageEvent) => {
+                const [etype, ...params] = JSON.parse(mev.data);
 
                 switch (etype) {
                     case "EVENT":
@@ -129,7 +133,7 @@ export const mkPool: (wsFactory: typeof WebSocket) => RelayPool = (wsFactory = m
                         // TODO
                         break;
                 }
-            }
+            }) as any;
         });
     };
 

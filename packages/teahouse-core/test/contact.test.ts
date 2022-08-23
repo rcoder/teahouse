@@ -31,13 +31,21 @@ const n05MetaFor = async (alias: string) =>
 
 test('parsing', async () => {
     const good = 'me@example.com';
-    expect(parseNip05Name(good)).toEqual({
+    const goodName = parseNip05Name(good);
+    const goodUrl = nip05Url(goodName!);
+
+    expect(goodName).toEqual({
         local: 'me',
         domain: 'example.com'
     });
 
+    expect(goodUrl).toEqual(new URL(
+        'https://example.com/.well-known/nostr.json?name=me'
+    ));
+
     const bad = "memememe!";
-    expect(parseNip05Name(bad)).toBe(undefined);
+    const badName = parseNip05Name(bad);
+    expect(badName).toBe(undefined);
 });
 
 test('validation', async () => {

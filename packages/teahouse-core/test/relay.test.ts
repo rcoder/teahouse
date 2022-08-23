@@ -7,9 +7,6 @@ import {
     test
 } from '@jest/globals';
 
-import { WebSocket } from 'mock-socket';
-import WS from 'jest-websocket-mock';
-
 import { type Schema, validate } from 'jtd';
 import schema from '../schema/nostr.json';
 
@@ -30,6 +27,8 @@ import {
     relayInfoUrl,
     verifyEvent
 } from '..';
+
+import WS from 'jest-websocket-mock';
 
 let server: WS;
 
@@ -55,7 +54,8 @@ test('pool-connect', async () => {
 
     expect(pool.activeRelays()).toBe(1);
 
-    const filters = defaultFilters(stdKeypair.pk);
+    //const filters = defaultFilters(stdKeypair.pk);
+    const filters = [{ authors: [stdKeypair.pk] }];
 
     const receipt = pool.subscribe(async (e: Event) => {
         mailbox.push(e);
@@ -162,7 +162,7 @@ test('relay-info', async () => {
 
     fetch.once('*', relayInfo);
 
-    const pool = mkPool(mockWsFactory);
+    const pool = mkPool(mockWsFactory as any);
 
     const fetchedInfo = await pool.connect(mockWsUrl, true);
     expect(fetchedInfo).toEqual(relayInfo);

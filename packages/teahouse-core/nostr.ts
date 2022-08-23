@@ -1,7 +1,7 @@
 import { schnorr, utils } from '@noble/secp256k1';
 import type { Event, Filter } from './schema';
 
-const { bytesToHex, hexToBytes, sha256, randomPrivateKey } = utils;
+const { bytesToHex, hexToBytes, sha256, randomBytes, randomPrivateKey } = utils;
 const { getPublicKey, sign, verify } = schnorr;
 
 export {

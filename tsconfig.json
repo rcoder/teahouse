@@ -1,24 +1,31 @@
 {
     "compilerOptions": {
-        "module": "es2022",
-        "target": "es2022",
-        "lib": ["dom", "es2022"],
+        "module": "commonjs",
+        "target": "es2017",
+        "lib": ["dom", "es2017"],
         "esModuleInterop": true,
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "declaration": true,
-        "emitDeclarationOnly": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "noEmit": false,
+        "allowJs": true,
+        "emitDeclarationOnly": false,
         "strict": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
-        "baseUrl": "./src",
-        "outDir": "./dist",
-        "forceConsistentCasingInFileNames": true
+        "forceConsistentCasingInFileNames": true,
+        "composite": true
     },
-    "files": [
-        "src/index.ts"
+    "references": [
+        { "path": "packages/teahouse-core" },
+        { "path": "packages/teahouse-examples" }
+    ],
+    "exclude": [
+        "packages/teahouse-worker"
     ]
 }

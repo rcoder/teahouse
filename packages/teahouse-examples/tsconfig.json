@@ -1,0 +1,14 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./build",
+        "composite": true,
+        "lib": ["dom", "esnext"]
+    },
+    "files": [
+        "validation.ts"
+    ],
+    "references": [
+        { "path": "../teahouse-core/" }
+    ]
+}

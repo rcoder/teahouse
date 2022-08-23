@@ -1,6 +1,5 @@
 import {
     type Event,
-    type Keypair,
     EventKind,
     hashEvent,
     mkPool,
@@ -12,21 +11,23 @@ import { type Schema, validate } from 'jtd';
 
 import { schnorr, utils } from '@noble/secp256k1';
 
-jest.mock('cross-fetch', () => require('fetch-mock-jest').sandbox());
-export const fetch = require('cross-fetch');
+import { WebSocket } from 'mock-socket';
 
 export const mockWsUrl = 'ws://localhost:9876';
 export const mockWsFactory = (url: string|URL) => new WebSocket(url);
 
+jest.mock('cross-fetch', () => require('fetch-mock-jest').sandbox());
+export const fetch = require('cross-fetch');
+
 export const initPool = async () => {
-    const pool = mkPool(mockWsFactory);
+    const pool = mkPool(mockWsFactory as any);
     await pool.connect(mockWsUrl, true);
     return pool;
 };
 
 export const stdSk = '7f2c59ec89ec1bdb3b0ba760d747ae3ec3402afeaf227d27883f71eb9a56dde6';
 
-export const stdKeypair: Keypair = {
+export const stdKeypair = {
     sk: stdSk,
     pk: utils.bytesToHex(schnorr.getPublicKey(stdSk))
 };

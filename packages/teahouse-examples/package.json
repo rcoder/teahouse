@@ -1,0 +1,17 @@
+{
+    "name": "teahouse-examples",
+    "version": "0.0.1",
+    "description": "",
+    "devDependencies": {
+        "@types/node": "^18.7.10"
+    },
+    "dependencies": {
+        "teahouse-core": "~0.0.1"
+    },
+    "scripts": {
+        "build": "esbuild *.ts --bundle --outdir=build --platform=node",
+        "validation": "yarn build && node build/validation",
+        "relay-connection": "yarn build && node build/relay-connection",
+        "run-all": "echo 'running examples' && yarn validation && yarn relay-connection"
+    }
+}

@@ -23,20 +23,22 @@ type Nip05Name = {
 export const parseNip05Name = (alias: string) => {
     let [_, local, domain] = alias.match(/^([-.\w]+)@([-.\w]+)/) || [];
 
-    return local && domain && { local, domain };
+    if (local && domain) {
+        return { local, domain };
+    } else {
+        return undefined;
+    }
 }
 
 export const nip05Url = (name: Nip05Name) => {
     let { local, domain } = name;
 
-    if (local && domain) {
-        local = encodeURIComponent(local);
-        domain = encodeURIComponent(domain);
-        const url = `https://${domain}/.well-known/nostr.json?name=${local}`;
-        return new URL(url);
-    } else {
-        return undefined;
-    }
+    local = encodeURIComponent(local);
+    domain = encodeURIComponent(domain);
+
+    const url = `https://${domain}/.well-known/nostr.json?name=${local}`;
+
+    return new URL(url);
 }
 
 type IdentResolver = {

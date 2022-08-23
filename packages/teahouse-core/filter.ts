@@ -1,4 +1,4 @@
-import { type Event, type Filter } from '.';
+import { type Event, type Filter } from './schema';
 
 export const nonEmptyIntersect = <T>(lhs: T[]|undefined, rhs: T[]) =>
     () => {

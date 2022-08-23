@@ -17,8 +17,7 @@ export {
     type Nip11,
 } from './schema/gen/nostr';
 
-import schema from './schema/nostr.json';
-export { schema };
+export { schema } from './schema';
 
 export {
     type Message,

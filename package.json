@@ -1,47 +1,17 @@
 {
   "name": "teahouse",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": "dist/*",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://kocchi.dev/lennon/teahouse.git"
   },
-  "type": "module",
   "license": "MIT",
-  "dependencies": {
-    "@noble/secp256k1": "^1.6.3",
-    "cross-fetch": "^3.1.5",
-    "isomorphic-ws": "^5.0.0",
-    "jtd": "^0.1.1",
-    "prelude-ts": "^1.0.4",
-    "ulid": "^2.3.0",
-    "weak-lru-cache": "^1.2.2"
-  },
-  "scripts": {
-    "build": "tsup src/index.ts --dts --format esm,cjs",
-    "prebuild": "rimraf './dist/*' && rimraf './src/schema/gen/*' && yarn typegen",
-    "typegen": "jtdc --rootDir ./src/schema --includes '*.json' --outDir ./src/schema/gen",
-    "pretest": "yarn typegen",
-    "test": "jest --watch",
-    "coverage": "jest --coverage --collectCoverageFrom='./src/**/*.{js,ts}'"
-  },
   "devDependencies": {
-    "@jtdc/cli": "^1.0.0",
-    "@types/fetch-mock": "^7.3.5",
-    "@types/isomorphic-fetch": "^0.0.36",
-    "@types/jest": "^28.1.7",
-    "esbuild": "^0.15.3",
-    "fetch-mock": "^9.11.0",
-    "fetch-mock-jest": "^1.5.1",
-    "jest": "^28.1.3",
-    "jest-websocket-mock": "^2.4.0",
-    "npm-dts": "^1.3.12",
-    "rimraf": "^3.0.2",
-    "ts-jest": "^28.0.8",
-    "tsup": "^6.2.2",
-    "typescript": "^4.7.4",
-    "ws": "^8.8.1"
-  }
+    "typescript": "^4.7.4"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
