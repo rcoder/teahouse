@@ -1,7 +1,3 @@
----
-title: API
----
-
 # Teahouse API
 
 ## General Protocol
@@ -25,13 +21,12 @@ You can validate an arbitrary JSON object against the relevant schema as follows
 ## Examples
 
 ### Creating + validating events
-```ts:packages/teahouse-examples/validation.ts
-```
+
+[validation.ts](examples/validation.ts ':include :type=code')
 
 ### Relays
 
-```ts:packages/teahouse-examples/relay-connection.ts
-```
+[relay-connection.ts](examples/relay-connection.ts ':include :type=code')
 
 ### Messages &amp; Mailboxes
 

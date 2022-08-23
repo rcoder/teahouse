@@ -1,9 +1,5 @@
-# Teahouse: Nostr TypeScript protocol library
+# About Teahouse
 
-## About
+Teahouse is a small library that helps you write clients for the [Nostr](https://github.com/nostr-protocol/nostr) decentralized message protocol.
 
-See [docs/about.md](docs/about.md) for documentation.
-
-## License
-
-MIT
+See [docs/README.md] for more information. (For a nicer view of the docs including inline code samples, do `npm i && npm run serve-docs` to get a docsify rendering.)

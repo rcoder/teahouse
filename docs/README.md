@@ -1,7 +1,3 @@
----
-title: About
----
-
 # About Teahouse
 
 Teahouse is a small library that helps you write clients for the [Nostr](https://github.com/nostr-protocol/nostr) decentralized message protocol.
